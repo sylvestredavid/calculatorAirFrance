@@ -1,4 +1,4 @@
-import {formatText, calculPoidTotal, calculKerozeneUtilise} from '../src/utils';
+import {calculKerozeneUtilise, calculPoidTotal, formatText} from '../src/utils';
 
 describe('formatText', () => {
   test('expect 1.2.3 equals 1.2', () => {

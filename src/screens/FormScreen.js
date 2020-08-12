@@ -1,13 +1,15 @@
 import React from 'react';
-import {View, TouchableOpacity, StyleSheet, Text, Image} from 'react-native';
-import {TextInput} from 'react-native-paper';
+import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Message from '../components/Message';
-import {formatText, calculPoidTotal, calculKerozeneUtilise} from '../utils';
-import {caracteristiquesAvion} from '../utils/avion';
+import {calculKerozeneUtilise, calculPoidTotal, formatText} from '../utils';
+import {CARACTERISTIQUES_AVION} from '../utils/avion';
+import CustomInput from '../components/CustomInput';
 
 export default class FormScreen extends React.Component {
   constructor(props) {
     super(props);
+    // bien qu'on ai besoin de numbers pour le calcul, on met les attributs du state en string
+    // car L'element TextInput ne prend et ne renvoi que des string
     this.state = {
       nbPassagers: '',
       nbLitreKerozene: '',
@@ -18,11 +20,18 @@ export default class FormScreen extends React.Component {
     };
   }
 
+  /**
+   * formate la valeur de l'input, vérifie si la valeur n'est pas supérieur à la
+   * capacité max de l'avion, si c'est le cas, on modifie le state avec la capacité max
+   * sinon on le modifie avec la valeur de l'input
+   * @param e l'event 'change' de l'input
+   */
   changeNbPassager = (e) => {
     const val = formatText(e.nativeEvent.text);
-    if (+val > caracteristiquesAvion.nbPassagersMax) {
+    // le + permet de caster une string en un number
+    if (+val > CARACTERISTIQUES_AVION.nbPassagersMax) {
       this.setState({
-        nbPassagers: caracteristiquesAvion.nbPassagersMax,
+        nbPassagers: '' + CARACTERISTIQUES_AVION.nbPassagersMax,
       });
     } else {
       this.setState({
@@ -31,6 +40,10 @@ export default class FormScreen extends React.Component {
     }
   };
 
+  /**
+   * formate la valeur de l'input et modifie le state avec
+   * @param e l'event 'change' de l'input
+   */
   changeNbLitreKerozene = (e) => {
     const val = formatText(e.nativeEvent.text);
     this.setState({
@@ -38,6 +51,10 @@ export default class FormScreen extends React.Component {
     });
   };
 
+  /**
+   * formate la valeur de l'input et modifie le state avec
+   * @param e l'event 'change' de l'input
+   */
   changeNbKilosBagagesCabine = (e) => {
     const val = formatText(e.nativeEvent.text);
     this.setState({
@@ -45,6 +62,10 @@ export default class FormScreen extends React.Component {
     });
   };
 
+  /**
+   * formate la valeur de l'input et modifie le state avec
+   * @param e l'event 'change' de l'input
+   */
   changeNbKilosBagagesSoute = (e) => {
     const val = formatText(e.nativeEvent.text);
     this.setState({
@@ -52,6 +73,10 @@ export default class FormScreen extends React.Component {
     });
   };
 
+  /**
+   * formate la valeur de l'input et modifie le state avec
+   * @param e l'event 'change' de l'input
+   */
   changeNbHeuresVol = (e) => {
     const val = formatText(e.nativeEvent.text);
     this.setState({
@@ -59,7 +84,11 @@ export default class FormScreen extends React.Component {
     });
   };
 
+  /**
+   * method d'envoi du formulaire
+   */
   onSubmit = () => {
+    // on vérifie d'abord si au moins un des input est vide
     if (
       this.state.nbPassagers === '' ||
       this.state.nbLitreKerozene === '' ||
@@ -67,6 +96,7 @@ export default class FormScreen extends React.Component {
       this.state.nbKilosBagagesSoute === '' ||
       this.state.nbHeuresVol === ''
     ) {
+      // si c'est le cas, on crée un message d'erreur
       this.setState({
         message: {
           style: 'danger',
@@ -74,12 +104,16 @@ export default class FormScreen extends React.Component {
         },
       });
     } else {
+      // sinon on calcul le poid total et le kérozene utilisé
       const poidTotal = calculPoidTotal(this.state);
       const kerozeneUtilise = calculKerozeneUtilise(this.state.nbHeuresVol);
+      // on vérifie que le poid total est inférieur ou égal au poid max de l'avion
+      // et que le nombre de litre de kérozene utilisé est inférieur ou égal au kérozene embarqué
       if (
-        poidTotal <= caracteristiquesAvion.poidMaxKG &&
+        poidTotal <= CARACTERISTIQUES_AVION.poidMaxKG &&
         kerozeneUtilise <= this.state.nbLitreKerozene
       ) {
+        // si c'est le cas, on crée un message de succès
         this.setState({
           message: {
             style: 'success',
@@ -87,14 +121,19 @@ export default class FormScreen extends React.Component {
           },
         });
       } else {
-        if (poidTotal > caracteristiquesAvion.poidMaxKG) {
+        //sinon on a deux possibilités, soit l'avion est trop lourd
+        // on vérifie si l'avion est trop lourd
+        if (poidTotal > CARACTERISTIQUES_AVION.poidMaxKG) {
+          // si c'est le cas, on crée un message d'erreur
           this.setState({
             message: {
               style: 'danger',
               text: "l'avion ne peut pas décoller car trop lourd",
             },
           });
+          // sinon on vérifie si le kérozene embarqué est inssufisant
         } else if (kerozeneUtilise > this.state.nbLitreKerozene) {
+          // si c'est le cas, on crée un message d'erreur
           this.setState({
             message: {
               style: 'danger',
@@ -107,6 +146,9 @@ export default class FormScreen extends React.Component {
     }
   };
 
+  /**
+   * method qui supprime le mesage, le faisant ainsi disparaitre de la vue
+   */
   closeMessage = () => {
     this.setState({
       message: undefined,
@@ -121,42 +163,27 @@ export default class FormScreen extends React.Component {
           source={require('../assets/logoAirFrance.png')}
         />
         <View style={styles.form}>
-          <TextInput
-            mode={'outlined'}
-            keyboardType={'number-pad'}
-            style={{marginVertical: 5}}
+          <CustomInput
             label={'Passagers'}
             value={this.state.nbPassagers}
             onChange={this.changeNbPassager}
           />
-          <TextInput
-            mode={'outlined'}
-            keyboardType={'number-pad'}
-            style={{marginVertical: 5}}
+          <CustomInput
             label={'Kérozene (L)'}
             value={this.state.nbLitreKerozene}
             onChange={this.changeNbLitreKerozene}
           />
-          <TextInput
-            mode={'outlined'}
-            keyboardType={'number-pad'}
-            style={{marginVertical: 5}}
+          <CustomInput
             label={'Bagages cabine (Kg)'}
             value={this.state.nbKilosBagagesCabine}
             onChange={this.changeNbKilosBagagesCabine}
           />
-          <TextInput
-            mode={'outlined'}
-            keyboardType={'number-pad'}
-            style={{marginVertical: 5}}
+          <CustomInput
             label={'Bagages soute (Kg)'}
             value={this.state.nbKilosBagagesSoute}
             onChange={this.changeNbKilosBagagesSoute}
           />
-          <TextInput
-            mode={'outlined'}
-            keyboardType={'number-pad'}
-            style={{marginVertical: 5}}
+          <CustomInput
             label={'Heures de vol'}
             value={this.state.nbHeuresVol}
             onChange={this.changeNbHeuresVol}

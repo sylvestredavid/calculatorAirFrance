@@ -1,6 +1,6 @@
 import React from 'react';
-import {Text, StyleSheet, View} from 'react-native';
-import {IconButton, Colors} from 'react-native-paper';
+import {StyleSheet, Text, View} from 'react-native';
+import {Colors, IconButton} from 'react-native-paper';
 
 export default function Message(props) {
   if (props.style === 'danger') {
